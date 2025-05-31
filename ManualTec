@@ -1,0 +1,139 @@
+Documentación del Código: MethodLibre
+1. Introducción
+
+MethodLibre es una aplicación de escritorio desarrollada en Python, diseñada para facilitar la resolución de problemas matemáticos mediante diversos métodos numéricos. El proyecto permite a los usuarios calcular raíces de ecuaciones, integrales definidas y resolver ecuaciones diferenciales ordinarias, todo a través de una interfaz gráfica interactiva.
+
+Las tecnologías principales utilizadas son:
+
+Python 3.x: Lenguaje de programación principal.
+Tkinter (con ttk): Para la construcción de la interfaz gráfica de usuario (GUI).
+Matplotlib: Para la generación de gráficos y visualización de datos.
+Numpy: Para cálculos numéricos avanzados y manejo de arrays, especialmente en las funciones matemáticas y los métodos de EDOs.
+2. Arquitectura General
+
+El proyecto se estructura en dos componentes principales de Python:
+
+main.py: Este archivo es el corazón de la aplicación de cara al usuario. Contiene la clase App, que define y gestiona todos los elementos de la interfaz gráfica (ventanas, pestañas, campos de entrada, botones, área de resultados). También se encarga de la lógica de control: recoge las entradas del usuario, las procesa, invoca los algoritmos numéricos del módulo metodos_numericos.py, y finalmente muestra los resultados y gráficos correspondientes.
+metodos_numericos.py: Actúa como una biblioteca backend que contiene las implementaciones de los diversos algoritmos de métodos numéricos. Cada método está encapsulado en una función que realiza validaciones de entrada, ejecuta el cálculo y devuelve el resultado junto con un mensaje de estado. Este módulo está diseñado para ser independiente de la interfaz gráfica, lo que facilita su prueba y reutilización.
+El flujo de datos general es el siguiente:
+
+El usuario interactúa con la GUI (ingresa datos, presiona botones) definida en main.py.
+main.py captura estos eventos y los datos ingresados.
+Para los cálculos, main.py llama a las funciones apropiadas en metodos_numericos.py, pasando los datos del usuario.
+metodos_numericos.py procesa los datos, ejecuta el algoritmo y devuelve los resultados (y/o mensajes de error/estado) a main.py.
+main.py recibe esta información y actualiza la GUI para mostrar los resultados al usuario, ya sea en el área de texto o mediante gráficos.
+3. Detalle del Módulo main.py (Interfaz Gráfica y Lógica de Control)
+
+Este módulo es responsable de toda la interacción con el usuario y la presentación de la información.
+
+Clase Principal App
+
+Inicialización (__init__):
+Configura la ventana principal de Tkinter (self.root), incluyendo el título y la geometría inicial.
+Aplica un estilo ttk para mejorar la apariencia de los widgets.
+Crea un ttk.Notebook (self.notebook) que permite la organización del contenido en múltiples pestañas.
+Define un scrolledtext.ScrolledText (self.results_text) para mostrar los resultados y mensajes detallados, configurado inicialmente como de solo lectura.
+Prepara las figuras y ejes de Matplotlib (self.fig_roots, self.ax_roots, etc.) que se usarán para los gráficos en cada pestaña. Los FigureCanvasTkAgg se asocian a sus respectivas pestañas más adelante.
+Define self.safe_math_dict, un diccionario crucial para la evaluación segura de funciones matemáticas ingresadas por el usuario.
+Componentes de la Interfaz y Configuración de Pestañas:
+
+Las pestañas ("Raíces de Ecuaciones", "Integración Numérica", "Ecuaciones Diferenciales") son frames ttk.Frame añadidos al Notebook.
+Los métodos _setup_roots_tab(), _setup_integration_tab(), y _setup_odes_tab() son responsables de poblar cada pestaña con los widgets necesarios:
+ttk.Label para descripciones.
+ttk.Entry para que el usuario ingrese funciones, parámetros y límites.
+ttk.Button para disparar los cálculos y la graficación. Las funciones de callback (ej. self._solve_bisection) se asignan al atributo command de estos botones.
+Los FigureCanvasTkAgg (widgets de Matplotlib) se integran en LabelFrame dentro de cada pestaña para mostrar los gráficos.
+Procesamiento de Funciones Matemáticas:
+
+_parse_function(func_str, var_names=('x',)): Este método es fundamental para interpretar las funciones matemáticas que el usuario ingresa como texto (ej., "x**2 - np.sin(x)").
+Construye dinámicamente una función lambda utilizando eval().
+Seguridad: Para mitigar los riesgos de eval(), se proporcionan dos diccionarios:
+{"__builtins__": {}}: Limita el acceso a las funciones integradas de Python, previniendo la ejecución de código arbitrario.
+self.safe_math_dict: Un diccionario que expone selectivamente funciones y constantes seguras de los módulos numpy y math (ej. np.sin, math.exp, np.pi).
+Realiza una llamada de prueba a la función recién creada para asegurar que es sintácticamente válida antes de retornarla.
+Si hay un error durante el parseo o la prueba, muestra un messagebox.showerror al usuario.
+Lógica de Cálculo y Eventos:
+
+Los métodos _solve_<metodo>() (ej. _solve_bisection, _solve_trapezoidal, _solve_euler, _solve_rk4) actúan como controladores de eventos para los botones de cálculo.
+Recolección de Datos: Obtienen los valores de los campos ttk.Entry correspondientes, convirtiéndolos a los tipos numéricos necesarios (float, int).
+Parseo de Funciones: Utilizan _parse_function para convertir las cadenas de texto de las funciones y derivadas en objetos llamables.
+Llamada al Backend: Invocan la función correspondiente del módulo metodos_numericos (ej. mn.bisection_method(...)).
+Gestión de Resultados: Reciben la tupla de resultados (valor y mensaje) o los arrays (para EDOs).
+Actualización de GUI:
+Limpian y actualizan self.results_text con la información del cálculo (parámetros, resultado, mensaje de estado) usando _clear_results_text() y _append_results_text().
+Llaman a la función de graficación correspondiente (ej. _plot_roots_function()) para visualizar los resultados.
+Manejo de Errores: Envuelven la lógica en bloques try-except para capturar ValueError (de conversiones de tipo incorrectas) y otras excepciones (incluyendo las personalizadas de metodos_numericos.py). Los errores se comunican al usuario a través de messagebox.showerror y también se registran en self.results_text.
+Gestionan el cursor para indicar espera durante cálculos largos.
+Graficación:
+
+Los métodos _plot_roots_function(), _plot_integration_function(), y la lógica de graficación dentro de _solve_ode_common() manejan la visualización con Matplotlib.
+Antes de dibujar un nuevo gráfico, se limpian los ejes (self.ax_roots.clear(), etc.).
+Se establecen etiquetas, títulos y rejillas.
+Se utilizan funciones de Matplotlib como plot(), fill_between() (para integrales), y axhline() para dibujar los datos.
+Finalmente, se llama a self.canvas_roots.draw() (o el canvas correspondiente) para refrescar la visualización en la GUI.
+4. Detalle del Módulo metodos_numericos.py (Biblioteca de Métodos Numéricos)
+
+Este módulo contiene la lógica pura de los algoritmos numéricos.
+
+Propósito: Proporcionar implementaciones autocontenidas, robustas y precisas de varios métodos numéricos, separadas de la lógica de la interfaz de usuario.
+
+Excepciones Personalizadas:
+
+NumericalMethodError(Exception): Clase base para errores específicos de los métodos numéricos.
+InputError(NumericalMethodError): Se lanza cuando los argumentos de entrada de una función no son válidos (ej. tipo incorrecto, rango inválido, precondiciones no cumplidas).
+ConvergenceError(NumericalMethodError): Definida para indicar problemas de convergencia, aunque su uso activo puede variar; los métodos actuales suelen devolver mensajes de estado en lugar de lanzar esta excepción directamente.
+Estructura de las Funciones de Métodos Numéricos (ejemplos: bisection_method, newton_raphson_method, trapezoidal_rule, simpsons_1_3_rule, euler_method, rk4_method):
+
+Docstrings Detallados: Cada función pública incluye un docstring que explica su propósito, los parámetros que acepta (Args), lo que devuelve (Returns), y las excepciones que puede lanzar (Raises). Esto es fundamental para la comprensión y el uso correcto de la biblioteca.
+Validación Rigurosa de Parámetros de Entrada: Al inicio de cada función, se realizan múltiples comprobaciones sobre los argumentos:
+Si las funciones (func, func_derivative) son llamables (callable).
+Si los valores numéricos son del tipo correcto (int, float).
+Si los parámetros cumplen condiciones específicas del método (ej. a < b para Bisección, tol > 0, n debe ser un entero positivo y par para Simpson 1/3).
+Si se cumplen las precondiciones matemáticas (ej. f(a) * f(b) < 0 para Bisección).
+Se lanzan excepciones InputError si alguna validación falla.
+Implementación del Algoritmo Numérico: Esta es la lógica central, donde se realizan las iteraciones, cálculos de fórmulas, etc., específicos de cada método.
+Manejo de Errores Durante la Ejecución: Se utilizan bloques try-except Exception as e alrededor de las llamadas a las funciones proporcionadas por el usuario (ej. func(c)). Si la función del usuario falla (ej. por una división por cero no contemplada por el usuario en su función, o un error matemático), se captura la excepción y se relanza como NumericalMethodError con un mensaje contextual.
+Manejo de Casos Específicos del Método: Por ejemplo, en newton_raphson_method, se verifica si la derivada dfx_n es cercana a cero para evitar la división por cero, lanzando NumericalMethodError si es necesario.
+Valores de Retorno:
+Para métodos de raíces e integración, usualmente devuelven una tupla: (resultado_numerico, mensaje_string). El mensaje describe el resultado de la operación (ej. número de iteraciones, si convergió, si se alcanzó el máximo de iteraciones).
+Para los métodos de EDOs (euler_method, rk4_method), devuelven una tupla de arrays NumPy: (x_values, y_values), que representan los puntos de la solución. Se presta atención a ajustar el último paso h para alcanzar x_end con precisión.
+Pruebas Integradas (if __name__ == "__main__":):
+
+Este bloque permite que el archivo metodos_numericos.py se ejecute como un script independiente para realizar pruebas.
+Contiene funciones de prueba dedicadas para cada método numérico implementado (ej. test_bisection(), test_newton_raphson(), etc.).
+Estas funciones de prueba verifican casos de éxito (comparando con resultados conocidos) y casos de error esperados (asegurando que se lancen las excepciones correctas bajo condiciones incorrectas).
+Utilizan assert para las verificaciones y try-except para probar el manejo de excepciones.
+Proporcionan una forma rápida y eficaz de verificar la integridad de la biblioteca de métodos numéricos durante el desarrollo y mantenimiento.
+5. Flujo de Ejecución Típico (Ejemplo Detallado: Método de Bisección)
+
+Interacción del Usuario (GUI - main.py):
+El usuario ingresa la cadena de la función, por ejemplo, "x**2 - 4", en self.roots_func_entry.
+Ingresa los límites del intervalo, a = 0.0 y b = 3.0, en self.roots_a_entry y self.roots_b_entry.
+Configura la tolerancia tol = 1e-7 y max_iter = 100.
+Presiona el botón "Calcular Bisección".
+Manejo del Evento (_solve_bisection en main.py):
+Se leen los valores de los campos de entrada.
+Se llama a user_func = self._parse_function("x**2 - 4", var_names=('x',)). Internamente, eval crea lambda x: x**2 - 4.
+Se realizan verificaciones preliminares (ej. a < b, user_func(a) * user_func(b) < 0).
+Se llama a raiz, mensaje = mn.bisection_method(user_func, 0.0, 3.0, 1e-7, 100).
+Ejecución del Método (bisection_method en metodos_numericos.py):
+Validación: Se comprueba que user_func es llamable, a, b, tol, max_iter son numéricos y válidos. Se verifica que fa*fb < 0.
+Algoritmo: Se inicia el bucle iterativo. En cada paso:
+c = (a + b) / 2.0.
+Se calcula fc = user_func(c). Si user_func falla aquí, se lanza NumericalMethodError.
+Se comprueba la condición de parada: fc == 0 o (b - a) / 2.0 < tol.
+Se actualiza el intervalo [a, b] basado en el signo de fc * fa.
+Retorno: Al converger o alcanzar max_iter, devuelve, por ejemplo, (1.9999998, "Bisección convergió en 25 iteraciones.").
+Presentación de Resultados (_solve_bisection en main.py):
+Los valores raiz y mensaje se reciben.
+Se actualiza self.results_text con estos detalles.
+Se llama a self._plot_roots_function(raiz, a, b) para mostrar la función y la raíz encontrada en el gráfico.
+6. Conclusión
+
+El código de MethodLibre está bien estructurado, separando claramente la lógica de la interfaz de usuario de los algoritmos numéricos. Esto no solo promueve la claridad y la mantenibilidad, sino que también facilita las pruebas unitarias de los componentes críticos. El uso de excepciones personalizadas y la validación de entradas en metodos_numericos.py contribuyen a la robustez del sistema, mientras que main.py proporciona una interfaz amigable y un manejo de errores adecuado para el usuario final.
+
+Un desarrollador que desee extender este proyecto podría:
+
+Añadir nuevos métodos numéricos en metodos_numericos.py (siguiendo la estructura existente de validación, docstrings y pruebas).
+Integrar estos nuevos métodos en main.py añadiendo nuevas pestañas o opciones en las existentes.
+Mejorar las capacidades de graficación o la interfaz de usuario.

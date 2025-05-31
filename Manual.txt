@@ -1,0 +1,120 @@
+Manual de Usuario: MethodLibre
+1. Introducción
+MethodLibre es una aplicación de escritorio diseñada para ayudarte a resolver problemas matemáticos utilizando diversos métodos numéricos. Facilita el cálculo de raíces de ecuaciones, integrales definidas y la solución de ecuaciones diferenciales ordinarias de una forma visual e interactiva.
+
+2. Requisitos y Ejecución
+
+Requisitos: Para ejecutar MethodLibre desde el código fuente, necesitarás Python 3.x, y las bibliotecas Numpy y Matplotlib.
+Instalación de Dependencias: Puedes instalar las bibliotecas necesarias usando pip: pip install numpy matplotlib. Si se proporciona un archivo requirements.txt, usa pip install -r requirements.txt.
+Ejecución: Una vez tengas los requisitos, ejecuta la aplicación con el comando: python main.py desde el directorio del proyecto.
+3. Interfaz de Usuario General
+La ventana principal de MethodLibre se organiza en pestañas para acceder a los diferentes tipos de métodos numéricos:
+
+Pestañas: "Raíces de Ecuaciones", "Integración Numérica", y "Ecuaciones Diferenciales".
+Área de Resultados: En la parte inferior de la ventana, encontrarás un área de texto donde se mostrarán los resultados detallados de los cálculos y cualquier mensaje relevante.
+Gráficos: Muchos cálculos generarán un gráfico para visualizar la función, la raíz, el área de integración o la solución de la EDO.
+4. Guía de Uso por Módulo
+
+4.1. Pestaña "Raíces de Ecuaciones"
+Este módulo te ayuda a encontrar las raíces (soluciones donde f(x) = 0) de una ecuación.
+
+Entradas Requeridas:
+Función f(x): Ingresa la función como una expresión de Python (ej. x**3 - x - 2).
+Derivada f'(x): Necesaria para el método de Newton-Raphson (ej. 3*x**2 - 1).
+a (Bisección): Límite inferior del intervalo para Bisección.
+b (Bisección): Límite superior del intervalo para Bisección.
+x0 (Newton): Estimación inicial para Newton-Raphson.
+Tol: Tolerancia deseada para la convergencia.
+MaxIter: Número máximo de iteraciones permitidas.
+Acciones:
+Calcular Bisección: Resuelve usando el método de bisección.
+Calcular Newton-Raphson: Resuelve usando el método de Newton-Raphson.
+Graficar Función: Muestra la gráfica de f(x). Si se encontró una raíz, también se marcará.
+Formato de Funciones: Puedes usar funciones matemáticas de numpy anteponiendo np. (ej. np.sin(x)) y de math anteponiendo math. (ej. math.exp(x)). Constantes como np.pi o np.e también son válidas.
+4.2. Pestaña "Integración Numérica"
+Este módulo calcula la integral definida de una función en un intervalo dado.
+
+Entradas Requeridas:
+Función f(x): La función a integrar (ej. x**2).
+Límite inferior a: Inicio del intervalo de integración.
+Límite superior b: Fin del intervalo de integración.
+Número de subintervalos n: Cantidad de divisiones del intervalo (mayor 'n' suele dar más precisión). Para Simpson 1/3, 'n' debe ser par.
+Acciones:
+Calcular Trapecio: Calcula la integral usando la regla del trapecio.
+Calcular Simpson 1/3: Calcula la integral usando la regla de Simpson 1/3.
+Graficar Función: Muestra la gráfica de f(x) y sombrea el área bajo la curva correspondiente a la integral.
+4.3. Pestaña "Ecuaciones Diferenciales"
+Este módulo resuelve ecuaciones diferenciales ordinarias (EDOs) de primer orden con una condición inicial.
+
+Entradas Requeridas:
+Función dy/dx = f(x,y): La expresión de la derivada (ej. x + y).
+x0: Valor inicial de x.
+y0: Valor inicial de y (condición y(x0) = y0).
+Paso h: Tamaño del paso para el cálculo.
+x_final: Valor de x hasta donde se desea la solución.
+Acciones:
+Calcular Euler: Resuelve la EDO usando el método de Euler.
+Calcular RK4: Resuelve la EDO usando el método de Runge-Kutta de 4º orden.
+Resultados: Se mostrarán los valores de x e y calculados, y se graficará la solución y(x).
+5. Manejo de Errores
+Si ingresas datos incorrectos, una función mal formada, o si un método no puede proceder (por ejemplo, la derivada es cero en Newton-Raphson, o no hay cambio de signo para Bisección), la aplicación te mostrará un mensaje de error. Revisa los mensajes para entender el problema y corregir las entradas.
+
+6. Consejos Adicionales
+
+Al escribir funciones, recuerda que puedes usar operadores matemáticos estándar de Python (+, -, *, /, ** para potencia).
+Para funciones trigonométricas, exponenciales, logarítmicas, etc., usa el prefijo np. (ej. np.cos(x)) o math. (ej. math.sqrt(x)), según estén disponibles en el diccionario seguro de la aplicación.
+Presta atención a los mensajes en el área de resultados, ya que pueden dar información adicional sobre la convergencia o el proceso de cálculo.
+Manual de Desarrollador: MethodLibre
+1. Introducción
+Este manual está dirigido a desarrolladores que deseen entender la estructura interna de MethodLibre, contribuir a su desarrollo o modificarlo.
+MethodLibre es una aplicación de escritorio desarrollada en Python que utiliza Tkinter para la interfaz gráfica, Numpy para cálculos numéricos y Matplotlib para la generación de gráficos.
+
+2. Estructura del Proyecto
+El proyecto se organiza principalmente en los siguientes archivos:
+
+main.py: Contiene la clase App que maneja toda la interfaz gráfica de usuario (GUI), la lógica de eventos, la recolección de entradas del usuario y la orquestación de las llamadas a los métodos numéricos. También gestiona la presentación de resultados y gráficos.
+metodos_numericos.py: Es una biblioteca que implementa los algoritmos de los diferentes métodos numéricos (Bisección, Newton-Raphson, Trapecio, Simpson 1/3, Euler, RK4). Incluye validación de entradas, manejo de errores mediante excepciones personalizadas y devuelve los resultados y mensajes de estado.
+README.md: Proporciona la documentación general del proyecto, instrucciones de instalación y guías de contribución.
+3. Guía del Código
+
+3.1. main.py
+
+Clase App: Es la clase principal de la aplicación.
+__init__: Inicializa la ventana principal, el estilo ttk, el Notebook para las pestañas, y el área de resultados. También configura las figuras y canvas de Matplotlib.
+_setup_<nombre>_tab(): Métodos dedicados a construir la interfaz de cada pestaña (ej. _setup_roots_tab). Crean y posicionan los widgets (labels, entries, buttons).
+_parse_function(func_str, var_names): Convierte la cadena de texto de una función ingresada por el usuario en un objeto Python llamable (función lambda). Utiliza eval() de forma segura restringiendo el entorno con safe_math_dict y {"__builtins__": {}} para prevenir la ejecución de código malicioso.
+_solve_<metodo>(): Métodos que se ejecutan al presionar los botones de cálculo (ej. _solve_bisection). Obtienen los datos de los campos de entrada, llaman al método correspondiente en metodos_numericos.py, y luego actualizan el área de resultados y el gráfico. Manejan errores mostrando messagebox.
+_plot_<nombre>_function(): Métodos responsables de actualizar los gráficos de Matplotlib (ej. _plot_roots_function).
+safe_math_dict: Un diccionario que define las funciones y constantes matemáticas permitidas en las expresiones de función ingresadas por el usuario.
+3.2. metodos_numericos.py
+
+Excepciones Personalizadas:
+NumericalMethodError: Clase base para errores en los métodos.
+InputError: Para entradas inválidas.
+ConvergenceError (Definida, aunque no se lanza activamente en favor de mensajes de retorno).
+Estructura de las Funciones de Métodos Numéricos (ej. bisection_method, newton_raphson_method):
+Docstrings: Cada método está documentado con un docstring que explica su propósito, argumentos, qué devuelve y qué errores puede lanzar.
+Validación de Entradas: Al inicio de cada función, se realizan validaciones exhaustivas de los parámetros de entrada, lanzando InputError si algo no es correcto.
+Lógica del Algoritmo: Implementación del método numérico correspondiente.
+Manejo de Errores Internos: Se capturan excepciones durante la evaluación de funciones proporcionadas por el usuario, lanzando NumericalMethodError.
+Valores de Retorno: Típicamente devuelven una tupla con el resultado principal (ej. la raíz, el valor de la integral) y un mensaje string indicando el estado de la operación (convergencia, iteraciones, etc.). Para métodos de EDOs, devuelven arrays de Numpy con los valores de x e y.
+Bloque de Pruebas if __name__ == "__main__"::
+Contiene funciones de prueba para cada método numérico implementado (ej. test_bisection, test_newton_raphson).
+Para ejecutar estas pruebas, simplemente corre el archivo directamente: python metodos_numericos.py.
+Utilizan assert para verificar los resultados esperados y probar el manejo de errores.
+4. Cómo Contribuir
+Las contribuciones son bienvenidas. Si deseas contribuir:
+
+Haz un fork del repositorio.
+Crea una nueva rama para tu característica o corrección (ej. git checkout -b feature/nueva-funcionalidad).
+Realiza tus cambios.
+Asegúrate de que tu código esté bien documentado.
+Si añades una nueva funcionalidad en metodos_numericos.py, considera añadir pruebas correspondientes en el bloque if __name__ == "__main__":.
+Haz commit y push de tus cambios a tu fork.
+Envía un pull request al repositorio original.
+5. Áreas de Desarrollo Futuro (Sugerencias)
+
+Implementación de más métodos numéricos.
+Soporte para sistemas de ecuaciones.
+Mejoras en la interfaz gráfica (ej. personalización de gráficos, historial de cálculos).
+Exportación de resultados y gráficos.
